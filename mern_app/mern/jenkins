@@ -1,11 +1,81 @@
 pipeline{
-   agent any
-   
-   stages{
-	  stage{
-	  
-	  }
-	}
+    agent any
+    environment{
+        SONAR_URL = "http://192.168.146.132:9000"
+    }
+    stages{
+        stage('checkout'){
+            steps{
+                sh 'echo passed'
+            }
+        }
+        
+        stage('dependencies install'){
+            steps{
+                script{
+                    ['backend', 'frontend'].each { dir ->
+                        dir(dir){
+                            sh 'npm ci' //clean install dependencies 
+                        }
+                    }
+                }
+            }
+        }
+        stage('linting'){
+            steps{
+                script{
+                    dir('frontend'){
+                        sh 'npm run lint'  
+                        }
+                    }
+                
+                    
+                }
+            }
+            
+        }
+        stage('Build Frontend') {
+            steps {
+                dir('frontend') {
+                    sh 'npm run build'
+                }
+            }
+        }
+        stage('static code analysis') {
+			steps {
+                script{
+                    def dirs = ['frontend', 'backend']
 
-}
-
+                    dirs.each { dir ->
+                        dir(dir){
+                            withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
+                                sh """
+                                npx sonar-scanner \
+                                -Dsonar.login=$SONAR_AUTH_TOKEN \
+                                -Dsonar.host.url=${SONAR_URL}
+                                """
+                            }
+                        }
+                    }
+                }
+			
+            }
+		}
+        stage('Package') {
+            steps{
+                script {
+                    def dirs = ['frontend', 'backend']
+                    
+                    dirs.each { dir ->
+                        dir(dir){
+                            def image = docker.build("kamalsai33/${dir}-mern-app:${BUILD_NUMBER}")
+                            
+                            docker.withRegistry('https://index.docker.io/v1/', "docker-crd") {
+				            image.push()
+                            } 
+                        }                        
+                    }     
+                }
+            }
+        }
+    }
