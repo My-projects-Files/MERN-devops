@@ -4,13 +4,13 @@ pipeline{
         SONAR_URL = "http://localhost:9000"
     }
     stages{
-        stage('checkout'){
+        stage('checkout') {
             steps{
                 sh 'echo passed'
             }
         }
         
-        stage('dependencies install'){
+        stage('dependencies install') {
             steps{
                 script{
                     ['backend', 'frontend'].each { dir ->
@@ -21,19 +21,16 @@ pipeline{
                 }
             }
         }
-        stage('linting'){
+        stage('linting') {
             steps{
                 script{
                     dir('frontend'){
                         sh 'npm run lint'  
                         }
-                    }
-                
-                    
-                }
-            }
-            
+                    }   
+	        }
         }
+            
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
@@ -60,7 +57,7 @@ pipeline{
                 }
 			
             }
-		}
+	}
         stage('Package') {
             steps{
                 script {
@@ -72,12 +69,13 @@ pipeline{
                             
                             docker.withRegistry('https://index.docker.io/v1/', "docker-crd") {
 				            image.push()
-                            } 
-                        }                        
-                    }     
-                }
+                            			} 
+                        		}                        
+                    		}     
+                	}
+            	}
             }
-        }
+	}
 	post {
    	   always {
         	cleanWs()  // This will remove the entire workspace at the end of the build
