@@ -1,7 +1,7 @@
 pipeline{
     agent {
 	    docker {
-	        image 'kamalsai33/node-docker-ci:v1'
+	        image 'kamalsai33/node-docker-ci:v2'
 	        args '-v /var/run/docker.sock:/var/run/docker.sock' // for Docker CLI access
 	   }
      }
@@ -62,7 +62,7 @@ pipeline{
                 	dir(scanPath) {
                             withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
                                 sh """
-                                npx sonar-scanner \
+                                sonar-scanner \
                                 -Dsonar.login=$SONAR_AUTH_TOKEN \
                                 -Dsonar.host.url=${SONAR_URL}
                                 """
