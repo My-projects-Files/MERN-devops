@@ -26,7 +26,7 @@ pipeline{
                             sh '''
 			     	ls -la && cat package.json
 			     	echo "Installing dependencies in $PWD"
-			     	npm ci    #clean install dependencies 
+			     	npm ci --cache /tmp/.npm-cache --prefer-offline    #clean install dependencies 
 			     	echo passed
 			     '''
                         }
