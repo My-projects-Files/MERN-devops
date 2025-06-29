@@ -59,12 +59,15 @@ pipeline{
                     def scanDirs = [env.BACKEND, env.FRONTEND]
 
             	     scanDirs.each { scanPath ->
+			def projectKey = scanPath.replaceAll('/', '-').toLowerCase()
                 	dir(scanPath) {
                             withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
                                 sh """
-                                sonar-scanner \
-                                -Dsonar.login=$SONAR_AUTH_TOKEN \
-                                -Dsonar.host.url=${SONAR_URL}
+                                  sonar-scanner \
+					-Dsonar.projectKey=${projectKey} \
+	               		 	-Dsonar.sources=. \
+	                                -Dsonar.login=$SONAR_AUTH_TOKEN \
+	                                -Dsonar.host.url=${SONAR_URL}
                                 """
                             }
                         }
