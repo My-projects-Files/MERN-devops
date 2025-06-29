@@ -16,6 +16,8 @@ pipeline{
                     ['backend', 'frontend'].each { dir ->
                         dir(dir){
                             sh '''
+			     ls -la && cat package.json
+			     echo "Installing dependencies in $PWD"
 			     npm ci    #clean install dependencies 
 			     echo passed
 			     '''
