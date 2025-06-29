@@ -6,6 +6,7 @@ pipeline{
 	   }
      }
     environment{
+	npm_config_cache=/tmp/.npm-cache
         SONAR_URL = "http://localhost:9000"
 	FRONTEND = "mern_app/mern/frontend"
 	BACKEND = "mern_app/mern/backend"
@@ -25,9 +26,9 @@ pipeline{
             	    paths.each { path ->
                 	dir(path) {
                             sh '''
-			     	ls -la && cat package.json
-			     	echo "Installing dependencies in $PWD"
-			     	npm ci --cache /tmp/.npm-cache --prefer-offline    #clean install dependencies 
+			     	mkdir -p /tmp/.npm-cache
+        			chmod -R 777 /tmp/.npm-cache
+			     	npm ci --prefer-offline    #clean install dependencies 
 			     	echo passed
 			     '''
                         }
