@@ -9,6 +9,7 @@ pipeline{
         SONAR_URL = "http://localhost:9000"
 	FRONTEND = "mern_app/mern/frontend"
 	BACKEND = "mern_app/mern/backend"
+	XDG_CACHE_HOME = "${WORKSPACE}/.cache" //for fixing the Cypress to not look for root
     }
     stages{
         stage('checkout') {
