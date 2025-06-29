@@ -9,7 +9,11 @@ pipeline{
                 sh 'echo passed'
             }
         }
-        
+        stage('Debug Workspace') {
+   		 steps {
+        		sh 'pwd && ls -la'
+    		}
+	}
         stage('dependencies install') {
             steps{
                 script{
