@@ -2,6 +2,8 @@ pipeline{
     agent any
     environment{
         SONAR_URL = "http://localhost:9000"
+	FRONTEND = "mern_app/mern/frontend"
+	BACKEND = "mern_app/mern/backend"
     }
     stages{
         stage('checkout') {
@@ -9,15 +11,11 @@ pipeline{
                 sh 'echo passed'
             }
         }
-        stage('Debug Workspace') {
-   		 steps {
-        		sh 'pwd && ls -la'
-    		}
-	}
+
         stage('dependencies install') {
             steps{
                 script{
-                    ['backend', 'frontend'].each { dir ->
+                    [env.BACKEND, env.FRONTEND].each { dir ->
                         dir(dir){
                             sh '''
 			     	ls -la && cat package.json
@@ -33,7 +31,7 @@ pipeline{
         stage('linting') {
             steps{
                 script{
-                    dir('frontend'){
+                    dir(env.FRONTEND){
                         sh 'npm run lint'  
                         }
                     }   
@@ -42,7 +40,7 @@ pipeline{
             
         stage('Build Frontend') {
             steps {
-                dir('frontend') {
+                dir(env.FRONTEND) {
                     sh 'npm run build'
                 }
             }
@@ -50,10 +48,10 @@ pipeline{
         stage('static code analysis') {
 			steps {
                 script{
-                    def dirs = ['frontend', 'backend']
+                    def scanDirs = [env.BACKEND, env.FRONTEND]
 
-                    dirs.each { dir ->
-                        dir(dir){
+            	     scanDirs.each { scanPath ->
+                	dir(scanPath) {
                             withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
                                 sh """
                                 npx sonar-scanner \
@@ -70,10 +68,10 @@ pipeline{
         stage('Package') {
             steps{
                 script {
-                    def dirs = ['frontend', 'backend']
-                    
-                    dirs.each { dir ->
-                        dir(dir){
+                    def scanDirs = [env.BACKEND, env.FRONTEND]
+
+            	     scanDirs.each { scanPath ->
+                	dir(scanPath) {
                             def image = docker.build("kamalsai33/${dir}-mern-app:${BUILD_NUMBER}")
                             
                             docker.withRegistry('https://index.docker.io/v1/', "docker-crd") {
