@@ -6,7 +6,7 @@ pipeline{
 	   }
      }
     environment{
-	npm_config_cache=/tmp/.npm-cache
+	npm_config_cache= "/tmp/.npm-cache"
         SONAR_URL = "http://localhost:9000"
 	FRONTEND = "mern_app/mern/frontend"
 	BACKEND = "mern_app/mern/backend"
