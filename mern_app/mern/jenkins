@@ -16,7 +16,7 @@ pipeline{
                     ['backend', 'frontend'].each { dir ->
                         dir(dir){
                             sh '''
-			     npm ci \    //clean install dependencies 
+			     npm ci    #clean install dependencies 
 			     echo passed
 			     '''
                         }
