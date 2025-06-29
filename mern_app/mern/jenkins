@@ -7,7 +7,7 @@ pipeline{
      }
     environment{
 	npm_config_cache= "/tmp/.npm-cache"
-        SONAR_URL = "http://localhost:9000"
+        SONAR_URL = "http://192.168.146.132:9000"
 	FRONTEND = "mern_app/mern/frontend"
 	BACKEND = "mern_app/mern/backend"
 	XDG_CACHE_HOME = "${WORKSPACE}/.cache" //for fixing the Cypress to not look for root
