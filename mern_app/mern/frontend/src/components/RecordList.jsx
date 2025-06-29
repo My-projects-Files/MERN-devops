@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import PropTypes from "prop-types";
 
 const Record = (props) => (
   <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
@@ -62,7 +63,16 @@ export default function RecordList() {
     const newRecords = records.filter((el) => el._id !== id);
     setRecords(newRecords);
   }
-
+  
+  Record.propTypes = {
+    record: PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      position: PropTypes.string.isRequired,
+      level: PropTypes.string.isRequired,
+    }).isRequired,
+  deleteRecord: PropTypes.func.isRequired,
+};
   // This method will map out the records on the table
   function recordList() {
     return records.map((record) => {
