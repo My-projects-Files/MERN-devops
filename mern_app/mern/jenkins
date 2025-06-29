@@ -1,5 +1,10 @@
 pipeline{
-    agent any
+    agent {
+	    docker {
+	        image 'kamalsai33/node-docker-ci:v1'
+	        args '-v /var/run/docker.sock:/var/run/docker.sock' // for Docker CLI access
+	   }
+     }
     environment{
         SONAR_URL = "http://localhost:9000"
 	FRONTEND = "mern_app/mern/frontend"
