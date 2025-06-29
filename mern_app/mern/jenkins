@@ -15,8 +15,9 @@ pipeline{
         stage('dependencies install') {
             steps{
                 script{
-                    [env.BACKEND, env.FRONTEND].each { dir ->
-                        dir(dir){
+                    def paths = [env.BACKEND, env.FRONTEND]
+            	    paths.each { path ->
+                	dir(path) {
                             sh '''
 			     	ls -la && cat package.json
 			     	echo "Installing dependencies in $PWD"
