@@ -76,6 +76,15 @@ pipeline{
 			
             }
 	}
+	stage('Check Docker Access') {
+	  steps {
+	    sh '''
+	      ls -l /var/run/docker.sock
+	      id
+	      docker ps
+	    '''
+	  }
+	}
         stage('Package') {
             steps{
                 script {
