@@ -1,7 +1,7 @@
 pipeline{
     agent {
 	    docker {
-	        image 'kamalsai33/node-docker-ci:v2'
+	        image 'kamalsai33/node-docker-ci:v3'
 	        args '-v /var/run/docker.sock:/var/run/docker.sock' // for Docker CLI access
 	   }
      }
