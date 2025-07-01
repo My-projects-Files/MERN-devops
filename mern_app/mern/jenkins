@@ -26,8 +26,6 @@ pipeline{
             	    paths.each { path ->
                 	dir(path) {
                             sh '''
-			     	mkdir -p /tmp/.npm-cache
-        			chmod -R 777 /tmp/.npm-cache
 			     	npm ci --prefer-offline    #clean install dependencies 
 			     	echo passed
 			     '''
