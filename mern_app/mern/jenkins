@@ -110,7 +110,7 @@ pipeline{
 			}
 			steps {
             			withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-				sh '''
+				sh """
 				    ls -l
 				    git clone ${GIT_DEST_REPO}
 				    cd Mark-10-Kubernet_repo
@@ -121,7 +121,7 @@ pipeline{
 		                    git add kube-Mark-10.5/mern-app/values.yaml
 		                    git commit -m "Update deployment image to version ${BUILD_NUMBER}"
 		                    git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-		                '''
+		                """
 				}
         		}
 		}
