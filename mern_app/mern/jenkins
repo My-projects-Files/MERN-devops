@@ -104,6 +104,31 @@ pipeline{
             	}
             }
 	}
+	stage('updating deployment file') {
+			environment {
+				GIT_REPO_NAME="Mark-10-Kubernet_repo"
+				GIT_USER_NAME="saikamal33"
+				GIT_DEST_REPO="https://github.com/saikamal33/Mark-10-Kubernet_repo"
+			}
+			steps {
+            			withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+				sh '''
+				    ls -l
+				    git clone ${GIT_DEST_REPO}
+				    cd Mark-10-Kubernet_repo
+		                    git config user.email "kamaleshsai33@gmail.com"
+		                    git config user.name "saikamal33"
+		                    BUILD_NUMBER=${BUILD_NUMBER}
+		                    sed -i "s|\(tag: \).*|\1${BUILD_NUMBER}|g" kube-Mark-10.5/value.yaml
+		                    git add kube-Mark-10.5/value.yaml
+		                    git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+		                    git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+		                '''
+            			}
+			}
+		}
+	}
+
 	post {
    	   always {
         	cleanWs()  // This will remove the entire workspace at the end of the build
