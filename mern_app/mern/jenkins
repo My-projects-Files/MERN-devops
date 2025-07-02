@@ -1,42 +1,52 @@
 pipeline{
-    agent any
+    agent {
+	    docker {
+	        image 'kamalsai33/node-docker-ci:v2'
+	        args '-v /var/run/docker.sock:/var/run/docker.sock --user root' // for Docker CLI access
+	   }
+     }
     environment{
+	npm_config_cache= "/tmp/.npm-cache"
         SONAR_URL = "http://192.168.146.132:9000"
+	FRONTEND = "mern_app/mern/frontend"
+	BACKEND = "mern_app/mern/backend"
+	XDG_CACHE_HOME = "${WORKSPACE}/.cache" //for fixing the Cypress to not look for root
     }
     stages{
-        stage('checkout'){
+        stage('checkout') {
             steps{
                 sh 'echo passed'
             }
         }
-        
-        stage('dependencies install'){
+
+        stage('dependencies install') {
             steps{
                 script{
-                    ['backend', 'frontend'].each { dir ->
-                        dir(dir){
-                            sh 'npm ci' //clean install dependencies 
+                    def paths = [env.BACKEND, env.FRONTEND]
+            	    paths.each { path ->
+                	dir(path) {
+                            sh '''
+			     	npm ci --prefer-offline    #clean install dependencies 
+			     	echo passed
+			     '''
                         }
                     }
                 }
             }
         }
-        stage('linting'){
+        stage('linting') {
             steps{
                 script{
-                    dir('frontend'){
+                    dir(env.FRONTEND){
                         sh 'npm run lint'  
                         }
-                    }
-                
-                    
-                }
-            }
-            
+                    }   
+	        }
         }
+            
         stage('Build Frontend') {
             steps {
-                dir('frontend') {
+                dir(env.FRONTEND) {
                     sh 'npm run build'
                 }
             }
@@ -44,15 +54,18 @@ pipeline{
         stage('static code analysis') {
 			steps {
                 script{
-                    def dirs = ['frontend', 'backend']
+                    def scanDirs = [env.BACKEND, env.FRONTEND]
 
-                    dirs.each { dir ->
-                        dir(dir){
+            	     scanDirs.each { scanPath ->
+			def projectKey = scanPath.replaceAll('/', '-').toLowerCase()
+                	dir(scanPath) {
                             withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
                                 sh """
-                                npx sonar-scanner \
-                                -Dsonar.login=$SONAR_AUTH_TOKEN \
-                                -Dsonar.host.url=${SONAR_URL}
+                                  sonar-scanner \
+					-Dsonar.projectKey=${projectKey} \
+	               		 	-Dsonar.sources=. \
+	                                -Dsonar.login=$SONAR_AUTH_TOKEN \
+	                                -Dsonar.host.url=${SONAR_URL}
                                 """
                             }
                         }
@@ -60,22 +73,64 @@ pipeline{
                 }
 			
             }
-		}
+	}
+	stage('Check Docker Access') {
+	  steps {
+	    sh '''
+	      ls -l /var/run/docker.sock
+	      id
+	      docker ps
+	    '''
+	  }
+	}
         stage('Package') {
             steps{
                 script {
-                    def dirs = ['frontend', 'backend']
-                    
-                    dirs.each { dir ->
-                        dir(dir){
-                            def image = docker.build("kamalsai33/${dir}-mern-app:${BUILD_NUMBER}")
+                    def scanDirs = [env.BACKEND, env.FRONTEND]
+
+            	     scanDirs.each { scanPath ->
+                	dir(scanPath) {
+			    def projectKey = scanPath.replaceAll('/', '-').toLowerCase()
+                            def image = docker.build("kamalsai33/${projectKey}-mern-app:${BUILD_NUMBER}")
                             
                             docker.withRegistry('https://index.docker.io/v1/', "docker-crd") {
 				            image.push()
-                            } 
-                        }                        
-                    }     
-                }
+                            			} 
+                        		}                        
+                    		}     
+                	}
+            	}
             }
-        }
+	
+	stage('updating deployment file') {
+			environment {
+				GIT_REPO_NAME="Mark-10-Kubernet_repo"
+				GIT_USER_NAME="saikamal33"
+				GIT_DEST_REPO="https://github.com/saikamal33/Mark-10-Kubernet_repo"
+			}
+			steps {
+            			withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+				sh """
+				    ls -l
+				    git clone ${GIT_DEST_REPO}
+				    cd Mark-10-Kubernet_repo
+		                    git config user.email "kamaleshsai33@gmail.com"
+		                    git config user.name "saikamal33"
+		                    BUILD_NUMBER=${BUILD_NUMBER}
+		                    sed -i 's|tag: .*|tag: ${BUILD_NUMBER}|' kube-Mark-10.5/mern-app/values.yaml
+		                    git add kube-Mark-10.5/mern-app/values.yaml
+		                    git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+		                    git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+		                """
+				}
+        		}
+		}
+	}
+	
+	post {
+   	   always {
+        	cleanWs()  // This will remove the entire workspace at the end of the build
+	 		
+	    }
+	}
     }
